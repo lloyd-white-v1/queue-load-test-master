@@ -6,9 +6,15 @@ const url = "https://eani-tst.outsystemsenterprise.com/postprimary/Login";
 const targetHostname = "eani-tst.outsystemsenterprise.com";
 const queueHostname = "eani.queue-it.net";
 
-const userCount = 20;
+const args = require("minimist")(process.argv.slice(2), {
+  default: { n: 10, c: 5 },
+});
+
+const userCount = args.n;
+const maxConcurrent = args.c;
+
 const urlCheckInterval = 1000;
-const maxConcurrent = 10;
+let openedCounter = 0;
 let resolvedCounter = 0;
 
 console.info(`Run test with ${userCount} users`);
@@ -20,6 +26,7 @@ for (let i = 0; i < maxConcurrent; i++) {
 
 function openInstance() {
   (async () => {
+    openedCounter++;
     let startTime = new Date();
 
     const browser = await puppeteer.launch({ headless: false });
@@ -45,7 +52,7 @@ function openInstance() {
         clearInterval(intervalVar);
         browser.close();
 
-        if (resolvedCounter < userCount) {
+        if (openedCounter < userCount) {
           openInstance();
         }
       }
